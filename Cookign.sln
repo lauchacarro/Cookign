@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28809.33
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cookign", "Cookign\Cookign.csproj", "{F50CD2A3-2ABE-4A63-BB4E-8925E42BCFE1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookignExample", "CookignExample\CookignExample.csproj", "{626B2C2D-BCD8-40AB-8094-103831602CDA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F50CD2A3-2ABE-4A63-BB4E-8925E42BCFE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F50CD2A3-2ABE-4A63-BB4E-8925E42BCFE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F50CD2A3-2ABE-4A63-BB4E-8925E42BCFE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F50CD2A3-2ABE-4A63-BB4E-8925E42BCFE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{626B2C2D-BCD8-40AB-8094-103831602CDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{626B2C2D-BCD8-40AB-8094-103831602CDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{626B2C2D-BCD8-40AB-8094-103831602CDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{626B2C2D-BCD8-40AB-8094-103831602CDA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1335B4B1-FE28-4DCC-B1B8-2C4942582055}
+	EndGlobalSection
+EndGlobal
