@@ -19,21 +19,68 @@ namespace Cookign
 
         private readonly IDataProtectionProvider _dataProtectionProvider;
 
-        private readonly IActionContextAccessor _accessor;
-
-        public CookignAuthenticationHandler(IActionContextAccessor accessor, IDataProtectionProvider dataProtectionProvider, IOptionsMonitor<CookignAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+        public CookignAuthenticationHandler( IDataProtectionProvider dataProtectionProvider, IOptionsMonitor<CookignAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
         {
             _dataProtectionProvider = dataProtectionProvider;
-            _accessor = accessor;
         }
 
 
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            
+            if (Request.Cookies.Count(x => x.Key == Options.CookieTokenName) != 1)
+            {
+                return AuthenticateResult.NoResult();
+            }
 
-            return AuthenticateResult.NoResult();
+            string cookieValue = Request.Cookies.Single(x => x.Key == Options.CookieTokenName).Value;
+
+            if (string.IsNullOrWhiteSpace(cookieValue))
+            {
+                return AuthenticateResult.NoResult();
+            }
+
+            AuthenticationTicket ticket = CreateProtector().Unprotect(cookieValue);
+
+            if(ticket == null)
+            {
+                return AuthenticateResult.NoResult();
+            }
+
+            ClaimsIdentity claimsIdentity = ticket.Principal.Identities.SingleOrDefault(x => x.AuthenticationType == Constants.CookingIdentitySetting);
+            if(claimsIdentity == null)
+            {
+                return AuthenticateResult.NoResult();
+            }
+
+            if (Options.ValidateIssuer)
+            {
+                string issuer = claimsIdentity.Claims.SingleOrDefault(x => x.Type == Constants.ClaimIssuer).Value;
+                if(issuer != Options.CookingSettings.Issuer)
+                {
+                    return AuthenticateResult.NoResult();
+                }
+            }
+
+            if (Options.ValidateAudience)
+            {
+                string audience = claimsIdentity.Claims.SingleOrDefault(x => x.Type == Constants.ClaimAudience).Value;
+                if (audience != Options.CookingSettings.Audience)
+                {
+                    return AuthenticateResult.NoResult();
+                }
+            }
+
+            if (Options.ValidateIpPublic)
+            {
+                string remoteIp = claimsIdentity.Claims.SingleOrDefault(x => x.Type == Constants.ClaimRemoteIp).Value;
+                if (remoteIp != Context.Connection.RemoteIpAddress.ToString())
+                {
+                    return AuthenticateResult.NoResult();
+                }
+            }
+
+            return AuthenticateResult.Success(ticket);
         }
 
         protected override async Task HandleSignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
@@ -48,32 +95,24 @@ namespace Cookign
             List<Claim> claims = new List<Claim>();
             if (Options.ValidateIssuer)
             {
-                claims.Add(new Claim("Issuer", Options.CookingSettings.Issuer));
+                claims.Add(new Claim(Constants.ClaimIssuer, Options.CookingSettings.Issuer));
             }
             if (Options.ValidateAudience)
             {
-                claims.Add(new Claim("Audience", Options.CookingSettings.Audience));
+                claims.Add(new Claim(Constants.ClaimAudience, Options.CookingSettings.Audience));
             }
             if (Options.ValidateIpPublic)
             {
-                claims.Add(new Claim("RemoteIp", Context.Connection.RemoteIpAddress.ToString()));
+                claims.Add(new Claim(Constants.ClaimRemoteIp, Context.Connection.RemoteIpAddress.ToString()));
             }
-            List<ClaimsIdentity> identities = user.Identities.ToList();
 
-            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Settings");
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, Constants.CookingIdentitySetting);
 
             user.AddIdentity(claimsIdentity);
 
-
-
-
-
             AuthenticationTicket ticket = new AuthenticationTicket(user, properties, Scheme.Name);
 
-            IDataProtector provider =_dataProtectionProvider.CreateProtector(Options.CookingSettings.SecretKey);
-            
-            TicketDataFormat ticketDataFormat = new TicketDataFormat(provider);
-            string valueCookie = ticketDataFormat.Protect(ticket);
+            string valueCookie = CreateProtector().Protect(ticket);
 
             CookieOptions options = new CookieOptions
             {
@@ -86,12 +125,19 @@ namespace Cookign
 
             Response.Cookies.Append(Options.CookieTokenName, valueCookie, options);
 
-  
+
         }
 
-        protected override Task HandleSignOutAsync(AuthenticationProperties properties)
+        protected override async Task HandleSignOutAsync(AuthenticationProperties properties)
         {
-            throw new NotImplementedException();
+            Response.Cookies.Delete(Options.CookieTokenName);
+        }
+
+        private ISecureDataFormat<AuthenticationTicket> CreateProtector()
+        {
+            IDataProtector protector = _dataProtectionProvider.CreateProtector(Options.CookingSettings.SecretKey);
+            ISecureDataFormat<AuthenticationTicket> ticketDataFormat = new TicketDataFormat(protector);
+            return ticketDataFormat;
         }
     }
 }

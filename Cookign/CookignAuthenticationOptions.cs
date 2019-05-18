@@ -12,10 +12,6 @@ namespace Cookign
 
         public TimeSpan ExpireTimeSpan { get; set; } = new TimeSpan(1, 0, 0, 0, 0);
 
-        public PathString LoginPath { get; set; }
-
-        public PathString LogoutPath { get; set; }
-
         public bool ValidateIssuer { get; set; } = true;
 
         public bool ValidateAudience { get; set; } = true;
@@ -24,12 +20,7 @@ namespace Cookign
 
         public string SecretKey { get; set; }
 
-        public bool CreateClaimsCookie { get; set; } = true;
-
         public string CookieTokenName { get; set; } = "access_token";
-
-
-        public string CookieClaimsName { get; set; } = "identity";
 
         public bool Secure { get; set; } = true;
 
