@@ -4,6 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Lautaro Carro</Authors>
     <Company>Lautaro Carro</Company>
+    <Description>Cookign is a new library that is responsible for managing the identification and authorization of users on websites.</Description>
+    <PackageProjectUrl>https://github.com/lauchacarro/Cookign/wiki</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lauchacarro/Cookign</RepositoryUrl>
+    <PackageTags>cookie, token, segurity, http, httponly, secure, samesite, base64, net, netcore, authentication, cookie based authentication,  token based authentication, identity, asp.net core, claims principal, extensible, web api</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
