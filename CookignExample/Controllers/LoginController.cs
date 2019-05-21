@@ -15,7 +15,7 @@ namespace CookignExample.Controllers
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, "Cookign")
+                new Claim(ClaimTypes.Name, "UserName")
             };
 
             ClaimsIdentity identity = new ClaimsIdentity(claims);
