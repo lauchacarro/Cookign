@@ -13,17 +13,19 @@ namespace CookignExample.Controllers
     {
         public async Task<IActionResult> Index()
         {
-            var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, "Laucha")
-                    };
-            ClaimsIdentity userIdentity = new ClaimsIdentity(claims, "login");
-            ClaimsPrincipal principal = new ClaimsPrincipal(userIdentity);
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, "Cookign")
+            };
+
+            ClaimsIdentity identity = new ClaimsIdentity(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
             await HttpContext.SignInAsync(principal);
             return Ok();
         }
 
-        public async Task<IActionResult> Out ()
+        public async Task<IActionResult> Out()
         {
 
             await HttpContext.SignOutAsync();

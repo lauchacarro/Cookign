@@ -16,7 +16,7 @@ namespace CookignExample.Controllers
             return View();
         }
 
-        [Authorize(AuthenticationSchemes = nameof(Cookign))]
+        [Authorize]
         public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";

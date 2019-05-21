@@ -20,13 +20,17 @@ namespace Cookign
 
         public string SecretKey { get; set; }
 
-        public string CookieTokenName { get; set; } = "access_token";
+        public string CookieTokenName { get; set; } = CookignConstants.CookingTokenName;
 
         public bool Secure { get; set; } = true;
 
         public SameSiteMode SameSiteMode { get; set; } = SameSiteMode.Strict;
 
         public bool HttpOnly { get; set; } = true ;
+
+        public bool CreateCookieClaims { get; set; } = true;
+
+        public string CookieClaimsName { get; set; } = CookignConstants.CookieClaimName;
 
         internal CookingSettings CookingSettings { get; set; } = new CookingSettings();
     }

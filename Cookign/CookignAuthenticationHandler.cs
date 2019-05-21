@@ -11,6 +11,8 @@ using System.Security.Claims;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using System.Net;
+using System.Text;
 
 namespace Cookign
 {
@@ -47,7 +49,7 @@ namespace Cookign
                 return AuthenticateResult.NoResult();
             }
 
-            ClaimsIdentity claimsIdentity = ticket.Principal.Identities.SingleOrDefault(x => x.AuthenticationType == Constants.CookingIdentitySetting);
+            ClaimsIdentity claimsIdentity = ticket.Principal.Identities.SingleOrDefault(x => x.AuthenticationType == CookignConstants.CookingIdentitySetting);
             if(claimsIdentity == null)
             {
                 return AuthenticateResult.NoResult();
@@ -55,7 +57,7 @@ namespace Cookign
 
             if (Options.ValidateIssuer)
             {
-                string issuer = claimsIdentity.Claims.SingleOrDefault(x => x.Type == Constants.ClaimIssuer).Value;
+                string issuer = ticket.Properties.GetParameter<string>(CookignConstants.Issuer);
                 if(issuer != Options.CookingSettings.Issuer)
                 {
                     return AuthenticateResult.NoResult();
@@ -64,7 +66,7 @@ namespace Cookign
 
             if (Options.ValidateAudience)
             {
-                string audience = claimsIdentity.Claims.SingleOrDefault(x => x.Type == Constants.ClaimAudience).Value;
+                string audience = ticket.Properties.GetParameter<string>(CookignConstants.Audience);
                 if (audience != Options.CookingSettings.Audience)
                 {
                     return AuthenticateResult.NoResult();
@@ -73,8 +75,12 @@ namespace Cookign
 
             if (Options.ValidateIpPublic)
             {
-                string remoteIp = claimsIdentity.Claims.SingleOrDefault(x => x.Type == Constants.ClaimRemoteIp).Value;
-                if (remoteIp != Context.Connection.RemoteIpAddress.ToString())
+                if (ticket.Properties.GetParameter<IPAddress>(CookignConstants.RemoteIp) == null)
+                {
+                    return AuthenticateResult.NoResult();
+                }
+                IPAddress address = ticket.Properties.GetParameter<IPAddress>(CookignConstants.RemoteIp);
+                if(address.ToString() != Context.Connection.RemoteIpAddress.ToString())
                 {
                     return AuthenticateResult.NoResult();
                 }
@@ -92,23 +98,28 @@ namespace Cookign
 
             properties = properties ?? new AuthenticationProperties();
 
-            List<Claim> claims = new List<Claim>();
             if (Options.ValidateIssuer)
             {
-                claims.Add(new Claim(Constants.ClaimIssuer, Options.CookingSettings.Issuer));
+                if(string.IsNullOrWhiteSpace(properties.GetParameter<string>(CookignConstants.Issuer)))
+                {
+                    properties.SetParameter(CookignConstants.Issuer, Options.CookingSettings.Issuer);
+                }
+                
             }
             if (Options.ValidateAudience)
             {
-                claims.Add(new Claim(Constants.ClaimAudience, Options.CookingSettings.Audience));
+                if (string.IsNullOrWhiteSpace(properties.GetParameter<string>(CookignConstants.Audience)))
+                {
+                    properties.SetParameter(CookignConstants.Audience, Options.CookingSettings.Audience);
+                }
             }
             if (Options.ValidateIpPublic)
             {
-                claims.Add(new Claim(Constants.ClaimRemoteIp, Context.Connection.RemoteIpAddress.ToString()));
+                if (properties.GetParameter<IPAddress>(CookignConstants.RemoteIp) == null)
+                {
+                    properties.SetParameter(CookignConstants.RemoteIp, Context.Connection.RemoteIpAddress);
+                }
             }
-
-            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, Constants.CookingIdentitySetting);
-
-            user.AddIdentity(claimsIdentity);
 
             AuthenticationTicket ticket = new AuthenticationTicket(user, properties, Scheme.Name);
 
@@ -125,12 +136,22 @@ namespace Cookign
 
             Response.Cookies.Append(Options.CookieTokenName, valueCookie, options);
 
-
+            if (Options.CreateCookieClaims)
+            {
+                options = new CookieOptions
+                {
+                    Expires = DateTime.Now + Options.ExpireTimeSpan
+                };
+                string claimsJson = Newtonsoft.Json.JsonConvert.SerializeObject(from c in user.Claims select new { c.Type, c.Value });
+                string cookieClaimValue = Convert.ToBase64String(Encoding.UTF8.GetBytes(claimsJson));
+                Response.Cookies.Append(Options.CookieClaimsName, cookieClaimValue, options);
+            }
         }
 
         protected override async Task HandleSignOutAsync(AuthenticationProperties properties)
         {
             Response.Cookies.Delete(Options.CookieTokenName);
+            Response.Cookies.Delete(Options.CookieClaimsName);
         }
 
         private ISecureDataFormat<AuthenticationTicket> CreateProtector()
