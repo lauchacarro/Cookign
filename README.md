@@ -8,3 +8,6 @@ Cookign es una nueva librería que se encarga de manejar la identificación y au
 ### Más Ventajas
 * Es segura ante ataques XSS y CSRF
 * Fácil de implementar
+
+
+[Más Información](https://github.com/lauchacarro/Cookign/wiki)
